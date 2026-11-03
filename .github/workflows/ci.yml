@@ -1,6 +1,6 @@
 name: CI
 
-# Thin orchestrator. Prefer requiring checks "CI / CI" and "CI / Validate skills".
+# Thin orchestrator. Prefer requiring checks "CI / CI" and "Validate skills".
 # Semver omitted: this repo does not publish versioned artifacts.
 # allow-empty: markdown skills only (no pyproject.toml / package.json).
 
