@@ -28,7 +28,7 @@ Or copy instead of symlink if you prefer a snapshot. Restart or refresh the agen
 Thin [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
 1. **`CI / CI`** — `danielnachumdev/actions` hygiene (`allow-empty: true`; markdown-only repo)
-2. **`CI / Validate skills`** — `./scripts/validate_skills.sh` runs [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) against every repo-root skill
+2. **`Validate skills`** — `./scripts/validate_skills.sh` runs [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) against every repo-root skill
 
 Dependabot auto-merge waits on both. Semver / CD are omitted (no versioned artifacts).
 

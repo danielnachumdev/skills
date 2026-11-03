@@ -57,7 +57,7 @@ Prefer required status checks:
 | Check | Source |
 | ----- | ------ |
 | **`CI / CI`** | Reusable `danielnachumdev/actions` (`allow-empty: true`) |
-| **`CI / Validate skills`** | Job `validate-skills` (`name: Validate skills`) in this repo’s `ci.yml` |
+| **`Validate skills`** | Job `validate-skills` (`name: Validate skills`) in this repo’s `ci.yml` |
 
 Dependabot auto-merge `needs: [ci, validate-skills]`.
 
