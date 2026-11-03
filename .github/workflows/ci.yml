@@ -1,6 +1,6 @@
 name: CI
 
-# Thin orchestrator. Prefer requiring check "CI / CI".
+# Thin orchestrator. Prefer requiring checks "CI / CI" and "CI / Validate skills".
 # Semver omitted: this repo does not publish versioned artifacts.
 # allow-empty: markdown skills only (no pyproject.toml / package.json).
 
@@ -26,9 +26,26 @@ jobs:
     with:
       allow-empty: true
 
+  # Dogfood skills-ref validation here; extract script+job into
+  # danielnachumdev/actions later (script under scripts/ is the portable unit).
+  validate-skills:
+    name: Validate skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.13"
+
+      - name: Validate skills
+        run: ./scripts/validate_skills.sh
+
   dependabot-auto-merge:
     name: Dependabot auto-merge
-    needs: [ci]
+    needs: [ci, validate-skills]
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     permissions:
       contents: write
