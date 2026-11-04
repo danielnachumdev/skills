@@ -1,9 +1,21 @@
 # Triage Board — Reference
 
+Generic rule: invent JSON fields and UI pages that match the **current**
+decision campaign. Everything below is a **worked example** for a GitHub repo
+hygiene board — copy the shape, not the domain.
+
+**PII:** examples use fabricated placeholders only (`OWNER`, `example-repo`,
+`192.0.2.0/24`-style dummies). Do not commit live `repos.json` /
+`decisions.json` / rename boards; do not paste full live inventories into chat
+or PRs.
+
 ## UI scaffold
 
-Reuse or copy a local triage UI project with this layout (example checkout:
-`/home/daniel/dev/projects/repo-triage/`):
+Reuse or copy a local triage UI project under a path you choose (e.g.
+`/path/to/triage-ui`). For non-repo campaigns, adapt or replace `index.html` /
+endpoints so rows and actions match the schema.
+
+Example layout (repo campaign):
 
 ```text
 <triage-ui>/
@@ -21,13 +33,13 @@ Start:
 ```bash
 cd /path/to/triage-ui   # e.g. a local repo-triage checkout
 python3 serve.py
-# Keep/archive/delete: http://127.0.0.1:8765/
-# Rename triage:       http://127.0.0.1:8765/rename.html
+# Decision board: http://127.0.0.1:8765/
+# Rename board:   http://127.0.0.1:8765/rename.html
 ```
 
 ---
 
-## `repos.json` (Phase 2 input)
+## Example: `repos.json` (repo campaign Phase 2 input)
 
 ```json
 {
@@ -60,7 +72,7 @@ python3 serve.py
 
 ---
 
-## `decisions.json` (Phase 2 output)
+## Example: `decisions.json` (repo campaign Phase 2 output)
 
 ```json
 {
@@ -88,7 +100,7 @@ jq -r '.repos[] | select(.readme=="yes") | "\(.name) \(.target)"' decisions.json
 
 ---
 
-## `renames.json` (Phase 3 input)
+## Example: `renames.json` (repo campaign Phase 3 input)
 
 ```json
 {
@@ -110,7 +122,7 @@ jq -r '.repos[] | select(.readme=="yes") | "\(.name) \(.target)"' decisions.json
 
 ---
 
-## `rename-decisions.json` (Phase 3 output)
+## Example: `rename-decisions.json` (repo campaign Phase 3 output)
 
 ```json
 {
@@ -143,7 +155,7 @@ jq -r '.repos[] | select(.needs_brainstorm) | "\(.current)\t\(.notes)"' rename-d
 
 ---
 
-## Example `gh` commands
+## Example `gh` commands (repo campaign)
 
 ```bash
 # Inventory
@@ -180,7 +192,11 @@ If rename also changes the path, re-archive with the **new** name: `gh repo arch
 
 ## Mail-assistant prompt (company discovery)
 
-Use when an interview / take-home repo is **deferred** and a company-qualified name might help. Only apply a company slug when evidence is solid.
+Use when an interview / take-home repo is **deferred** and a company-qualified
+name might help. Only apply a company slug when evidence is solid.
+
+Keep results **PII-minimized**: no full bodies, no address books, no tokens.
+Subjects + sender **domain** + approximate date are enough.
 
 ```text
 Search my mail (and calendar if available) for evidence of which company
@@ -189,11 +205,13 @@ owned or assigned the take-home / interview project related to GitHub repo
 
 Return:
 1. Company name(s) with confidence (high/medium/low)
-2. Evidence: message subject, sender domain, approximate date (no full PII dumps)
+2. Evidence: message subject, sender domain, approximate date
+   (no full PII dumps — no bodies, no raw email lists)
 3. Suggested kebab-case repo name if confidence is high
 4. If no clear owner: say so — do not guess
 
 Do not invent a company. Prefer deferring over a wrong qualifier.
+Do not paste search hits into public PR bodies or committed files.
 ```
 
 ---
