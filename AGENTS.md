@@ -26,8 +26,7 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 ├── async/SKILL.md
 ├── triage-board/
 │   ├── SKILL.md
-│   ├── reference.md
-│   └── ui/                 # serve.py + HTML + examples/ (PII-safe demos)
+│   └── references/         # example campaign + ui/ + demo JSON (for the AI)
 ├── writing-python/SKILL.md
 ├── README.md
 └── AGENTS.md

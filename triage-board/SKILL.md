@@ -13,8 +13,8 @@ do **not** dump huge decision tables in chat. Run a local decision board:
 
 **inventory → suggest → local web UI → parse JSON → execute.**
 
-For a full worked example of one campaign (schemas, UI layout, commands), see
-[reference.md](reference.md). Copy the **shape**, not the domain.
+Worked examples for the agent (schemas, UI scaffold, demo JSON) live under
+[`references/`](references/) — copy the **shape**, not the domain.
 
 ## When to use
 
@@ -49,25 +49,30 @@ For a full worked example of one campaign (schemas, UI layout, commands), see
 - [ ] Optional follow-on boards if the campaign needs them
 ```
 
-## UI scaffold
+## Example UI (`references/`)
 
-This skill ships a local UI under [`ui/`](ui/) (`serve.py`, `index.html`,
-`rename.html`). Fabricated demo payloads live in [`ui/examples/`](ui/examples/).
-Campaign schemas and the worked example: [reference.md](reference.md).
+Everything under [`references/`](references/) is **example material for the
+AI**, not product config:
 
-**Run a board:**
+| Path | Role |
+|------|------|
+| [`references/reference.md`](references/reference.md) | Worked campaign write-up (schemas, phases, commands) |
+| [`references/ui/`](references/ui/) | Example local board (`serve.py`, `index.html`, `rename.html`) |
+| [`references/ui/examples/`](references/ui/examples/) | Fabricated demo JSON only |
 
-1. Copy `ui/` to a working directory (or work on a copy) so campaign JSON is
-   not written into the skill install tree.
-2. Place campaign input JSON next to `serve.py` (for the shipped example UI:
-   `repos.json` / `renames.json` — start from `ui/examples/` and replace with
-   real inventory **locally only**).
+**Run a board from the example UI:**
+
+1. Copy `references/ui/` to a working directory so campaign JSON is not written
+   into the skill install tree.
+2. Place campaign input JSON next to `serve.py` (for this example:
+   `repos.json` / `renames.json` — start from `references/ui/examples/` and
+   replace with real inventory **locally only**).
 3. Adapt HTML/fields when the campaign schema differs from the example.
 4. Start the server and point the user at it — never paste the full table into
    chat.
 
 ```bash
-cp -R /path/to/triage-board/ui /tmp/triage-ui-work
+cp -R /path/to/triage-board/references/ui /tmp/triage-ui-work
 cd /tmp/triage-ui-work
 cp examples/repos.json ./repos.json   # or write campaign JSON
 python3 serve.py

@@ -4,8 +4,8 @@ This file is a **worked example** of one triage-board campaign (GitHub repo
 hygiene). The skill itself is topic-agnostic — invent JSON fields and UI pages
 that match the **current** decision set. Copy the **shape**, not the domain.
 
-Shipped UI: [`ui/`](ui/) (`serve.py`, `index.html`, `rename.html`). Demo-only
-JSON: [`ui/examples/`](ui/examples/).
+Example UI (same `references/` tree): [`ui/`](ui/) (`serve.py`, `index.html`,
+`rename.html`). Demo-only JSON: [`ui/examples/`](ui/examples/).
 
 **PII:** examples use fabricated placeholders only (`OWNER`, `demo-api`,
 `192.0.2.0/24`-style dummies). Do not commit live decision JSON; do not paste
@@ -24,7 +24,7 @@ python3 serve.py
 
 ```text
 <triage-ui-work>/
-  serve.py                 # from skill ui/
+  serve.py                 # from skill references/ui/
   index.html
   rename.html
   repos.json               # campaign input (not committed)
