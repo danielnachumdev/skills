@@ -19,18 +19,33 @@ For **any** topic, the agent proposes a suggestion per row. The user generally:
 
 | Action | Meaning |
 |--------|---------|
-| **Accept** | Take the suggestion (or the user-edited value) |
-| **Decline** | Reject the suggestion; keep the current / status quo |
-| **Defer** | Not ready to decide; come back later (often with notes) |
+| **Accept** | Apply the suggestion **or the user-edited value** |
+| **Decline** | Reject the suggestion; keep the **current / status quo** (not a second proposal) |
+| **Defer** | Not ready to decide; come back later (usually with notes) |
 
 The UI should make it easy to:
 
-- **Edit the suggested value** before accepting (free-text or equivalent)
+- **Edit the suggested value** before accepting (free-text or a constrained editor)
 - **Add notes on deferral** (why deferred, brainstorm seeds, questions)
 
-Domain-specific labels are fine (“Rename” instead of “Accept”) as long as the
-three outcomes stay clear. Extra fields/actions are OK when the campaign needs
-them — start from this model, then adapt.
+### Nuances
+
+- **Accept ≠ raw suggestion.** Edited accepts are first-class; execute from
+  `final` / `target` (or equivalent), not blindly from the original
+  `suggested`.
+- **Decline is status quo.** Do not invent a competing “counter-suggestion”
+  action. If the campaign is “pick among A/B/C,” keep one suggested default and
+  let the user **accept after editing** (or use a constrained editor) — still
+  accept / decline / defer.
+- **Defer is unfinished work.** After submit, summarize **counts**; then chase
+  `needs_followup` (or equivalent) + notes. Submit does **not** mean every row
+  is settled.
+- **One board is enough** when every row is “react to a suggestion.” Add another
+  board only for a *different* decision type on a filtered subset — not by
+  default.
+- **Domain labels are cosmetics.** “Rename” / “Archive” / etc. may appear in the
+  UI if they help; the contract stays accept / decline / defer so agents do not
+  invent one-off verbs per topic.
 
 ## When to use
 
@@ -58,8 +73,9 @@ them — start from this model, then adapt.
    next to `serve.py`; start the server; point the user at the board — never
    paste the full table into chat.
 5. **Parse** submitted `decisions.json` (`jq`).
-6. **Execute** only accepted rows. Destructive actions need clear UI intent
-   (and often an explicit extra OK from the user). Deferred rows stay open.
+6. **Execute** only accepted rows using the **final** values. Destructive
+   actions need clear UI intent (and often an explicit extra OK). Declined rows
+   are no-ops; deferred rows stay open for follow-up from notes.
 
 ### Progress checklist
 
@@ -113,6 +129,8 @@ Do **not** commit live `items.json` or `decisions.json`.
 
 - Batched approval via **local web UI** — not chat walls of tables
 - Default actions: **accept / decline / defer**; editable suggestion + defer notes
+- Execute accepts from **final** values; treat deferrals as open work
 - Adapt columns/wording to the data; do not invent a one-off action model without reason
+- Prefer a **single** board unless a second decision type truly needs its own
 - Do not commit triage JSON or skill changes unless asked
 - Prefer user-driven irreversible ops when they want that control

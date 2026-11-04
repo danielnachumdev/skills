@@ -3,9 +3,12 @@
 Example material for the agent. Default decision model (any topic): the AI
 suggests a value per row; the user **accepts**, **declines**, or **defers**.
 The UI should allow **editing the suggestion** before accept and **notes** on
-defer. Adapt [`scripts/index.html`](../scripts/index.html) columns/JSON to the
-campaign data — keep that action model unless the campaign truly needs other
-actions.
+defer. Accept applies **final** (edited) values; decline is status quo; defer
+is unfinished work after submit. One board is enough for “react to a
+suggestion”; domain labels are cosmetic. Adapt
+[`scripts/index.html`](../scripts/index.html) columns/JSON to the campaign —
+keep that action model unless the campaign truly needs other actions. See
+**Nuances** in [`SKILL.md`](../SKILL.md).
 
 **PII:** placeholders only (`OWNER`, `demo-api`, …). Do not commit live
 `items.json` / `decisions.json`; do not paste full live inventories into chat
