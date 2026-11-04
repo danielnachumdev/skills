@@ -29,7 +29,7 @@ jobs:
 
   validate-skills:
     name: Validate skills
-    uses: danielnachumdev/actions/.github/workflows/validate-skills.yml@latest
+    uses: danielnachumdev/actions/.github/workflows/validate-skills.yml@v1.6.2
 
   dependabot-auto-merge:
     name: Dependabot auto-merge
