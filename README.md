@@ -9,6 +9,7 @@ Each skill is a directory at the repo root with a `SKILL.md` (YAML frontmatter +
 | Skill | Purpose |
 | ----- | ------- |
 | [`async`](async/) | Offload the current task to a background Task subagent so the main chat stays free |
+| [`triage-board`](triage-board/) | Batch local-web-UI decision board (primary: GitHub keep/archive/delete/rename triage) |
 | [`writing-python`](writing-python/) | Conventions for writing and refactoring Python (SRP, strategy/gateway layout, clean imports) |
 
 ## Install
@@ -18,6 +19,7 @@ Symlink or copy each skill folder into your personal skills directory (do **not*
 ```bash
 mkdir -p ~/.cursor/skills
 ln -sfn /path/to/skills/async ~/.cursor/skills/async
+ln -sfn /path/to/skills/triage-board ~/.cursor/skills/triage-board
 ln -sfn /path/to/skills/writing-python ~/.cursor/skills/writing-python
 ```
 
