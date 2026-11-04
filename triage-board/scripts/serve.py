@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tiny local server for triage-board UIs."""
+"""Tiny local server for a triage-board UI (example under scripts/)."""
 
 from __future__ import annotations
 
@@ -17,14 +17,9 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def do_POST(self) -> None:
-        routes = {
-            "/api/submit": ("decisions.json", "count"),
-            "/api/submit-renames": ("rename-decisions.json", "rename_count"),
-        }
-        if self.path not in routes:
+        if self.path != "/api/submit":
             self.send_error(404, "Not found")
             return
-        filename, count_key = routes[self.path]
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length)
         try:
@@ -32,14 +27,13 @@ class Handler(SimpleHTTPRequestHandler):
         except json.JSONDecodeError:
             self.send_error(400, "Invalid JSON")
             return
-        repos = data.get("repos")
-        if not isinstance(repos, list):
-            self.send_error(400, "Missing repos list")
+        items = data.get("items")
+        if not isinstance(items, list):
+            self.send_error(400, "Missing items list")
             return
-        out = ROOT / filename
+        out = ROOT / "decisions.json"
         out.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        rename_count = sum(1 for r in repos if r.get("will_rename"))
-        payload = {"ok": True, "path": str(out), "count": len(repos), "rename_count": rename_count}
+        payload = {"ok": True, "path": str(out), "count": len(items)}
         body = json.dumps(payload).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -54,7 +48,6 @@ class Handler(SimpleHTTPRequestHandler):
 def main() -> None:
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Decision board: http://{HOST}:{PORT}/")
-    print(f"Rename board:   http://{HOST}:{PORT}/rename.html")
     print(f"Serving {ROOT}")
     server.serve_forever()
 

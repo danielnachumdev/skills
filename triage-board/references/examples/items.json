@@ -1,5 +1,5 @@
 {
-  "repos": [
+  "items": [
     {
       "name": "OldHelper",
       "suggested": "old-helper",
@@ -13,7 +13,7 @@
       "name": "demo-api",
       "suggested": "demo-api",
       "url": "https://github.com/OWNER/demo-api",
-      "description": "Same name — hidden by the rename board filter.",
+      "description": "Same name — hidden when current equals suggested.",
       "archived": false,
       "fork": false,
       "language": "Python"
