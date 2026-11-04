@@ -1,10 +1,5 @@
 name: CI
 
-# Thin orchestrator. Prefer requiring checks "CI / CI" and
-# "Validate skills / Validate skills".
-# Semver omitted: this repo does not publish versioned artifacts.
-# allow-empty: markdown skills only (no pyproject.toml / package.json).
-
 on:
   push:
     branches: [main]
@@ -26,16 +21,3 @@ jobs:
     uses: danielnachumdev/actions/.github/workflows/ci.yml@latest
     with:
       allow-empty: true
-
-  validate-skills:
-    name: Validate skills
-    uses: danielnachumdev/actions/.github/workflows/validate-skills.yml@latest
-
-  dependabot-auto-merge:
-    name: Dependabot auto-merge
-    needs: [ci, validate-skills]
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
-    permissions:
-      contents: write
-      pull-requests: write
-    uses: danielnachumdev/actions/.github/workflows/dependabot-auto-merge.yml@latest
