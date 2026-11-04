@@ -1,9 +1,11 @@
 # Triage Board — Reference
 
-Example material for the agent. The skill is topic-agnostic: **adapt**
-[`scripts/index.html`](../scripts/index.html) and the JSON schema to whatever
-the user is deciding. This file documents one worked shape (suggested-value +
-action + notes), illustrated with a fabricated rename-style campaign.
+Example material for the agent. Default decision model (any topic): the AI
+suggests a value per row; the user **accepts**, **declines**, or **defers**.
+The UI should allow **editing the suggestion** before accept and **notes** on
+defer. Adapt [`scripts/index.html`](../scripts/index.html) columns/JSON to the
+campaign data — keep that action model unless the campaign truly needs other
+actions.
 
 **PII:** placeholders only (`OWNER`, `demo-api`, …). Do not commit live
 `items.json` / `decisions.json`; do not paste full live inventories into chat
@@ -16,7 +18,7 @@ triage-board/
   SKILL.md
   scripts/
     serve.py       # POST /api/submit → decisions.json
-    index.html     # example single board — customize per campaign
+    index.html     # example board — customize per campaign
   references/
     reference.md   # this file
     examples/
@@ -25,17 +27,15 @@ triage-board/
 
 ## Adapt before you serve
 
-Copy `scripts/` to a working directory, then change the board to fit the data:
+Copy `scripts/` to a working directory, then reshape fields to the data while
+keeping accept / decline / defer (+ editable suggestion, defer notes):
 
-| If the user is deciding… | Adjust |
-|--------------------------|--------|
-| New names / labels | Keep editable “suggested” + rename/keep/defer (closest to the example) |
-| Keep vs drop vs archive | Replace actions; drop or repurpose the free-text target field |
-| Classify / tag / assign | Actions or dropdowns for classes; fields for assignee/tag |
-| Approve / reject with notes | Two actions + notes; maybe hide “suggested” |
-
-Also update: filters, chips/counts, `items.json` fields, submit payload keys,
-and how you execute after `decisions.json` lands.
+| Campaign flavor | Typical tweaks |
+|-----------------|----------------|
+| Renames / labels | Example is already close; “suggested” = proposed name |
+| Keep vs drop vs archive | Suggestion = proposed target; accept applies it |
+| Classify / tag / assign | Suggestion = class/owner; maybe constrain the editor |
+| Approve content changes | Suggestion = proposed text/path; decline = leave as-is |
 
 ## Run the example board
 
@@ -51,16 +51,15 @@ Example UI behavior (as shipped):
 
 - Loads `items.json` (`items` array)
 - Hides rows where `name === suggested` (nothing to decide)
-- Actions: **Rename | Keep current | Defer (brainstorm)**
-- Editable target + notes
+- Actions: **Accept | Decline | Defer**
+- Editable suggested value + notes (especially for defer)
 - `POST /api/submit` writes `decisions.json`
 
 ---
 
 ## Example campaign: suggested renames
 
-Fabricated GitHub-style rows — only to show the template. Real campaigns invent
-their own inventory steps.
+Fabricated rows — only to show the template.
 
 ### Input — `items.json`
 
@@ -93,27 +92,28 @@ See [`examples/items.json`](examples/items.json).
       "suggested": "old-helper",
       "target": "old-helper",
       "final": "old-helper",
-      "action": "approve",
+      "action": "accept",
       "notes": "",
-      "will_rename": true,
-      "needs_brainstorm": false
+      "accepted": true,
+      "applied": true,
+      "needs_followup": false
     }
   ]
 }
 ```
 
-| `action` | Meaning in this example |
-|----------|-------------------------|
-| `approve` | Apply `final` (if ≠ `current`) |
-| `keep` | Keep current |
-| `defer` | Brainstorm; `needs_brainstorm: true` |
+| `action` | Meaning |
+|----------|---------|
+| `accept` | Apply `final` (edited suggestion or original suggestion) |
+| `decline` | Keep `current`; ignore suggestion |
+| `defer` | Follow up later; read `notes` (`needs_followup: true`) |
 
 ```bash
-jq -r '.items[] | select(.will_rename) | "\(.current) -> \(.final)"' decisions.json
-jq -r '.items[] | select(.needs_brainstorm) | "\(.current)\t\(.notes)"' decisions.json
+jq -r '.items[] | select(.accepted) | "\(.current) -> \(.final)"' decisions.json
+jq -r '.items[] | select(.needs_followup) | "\(.current)\t\(.notes)"' decisions.json
 ```
 
-### Optional follow-through (rename example only)
+### Optional follow-through (rename-style accept)
 
 ```bash
 gh repo rename -R OWNER/OLD NEW --yes

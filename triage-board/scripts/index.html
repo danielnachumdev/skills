@@ -168,18 +168,18 @@
   <header>
     <div>
       <h1>Triage board</h1>
-      <div class="sub">Example board (rename / keep / defer). Copy this scaffold and adjust columns, actions, and JSON to match whatever the user is deciding. Edit the target freely; optional notes. Submit when finished.</div>
+      <div class="sub">Example board: accept / decline / defer any AI suggestion. Edit the suggested value before accepting; add notes when deferring. Adjust columns/JSON to the campaign data.</div>
     </div>
     <div class="toolbar">
       <input id="q" type="search" placeholder="Filter by name, suggestion, or notes…" />
       <select id="filterAction">
         <option value="all">All actions</option>
-        <option value="approve">Rename</option>
-        <option value="keep">Keep current</option>
+        <option value="accept">Accept</option>
+        <option value="decline">Decline</option>
         <option value="defer">Defer</option>
       </select>
-      <button type="button" id="setApprove">Set visible → rename</button>
-      <button type="button" id="setKeep">Set visible → keep</button>
+      <button type="button" id="setAccept">Set visible → accept</button>
+      <button type="button" id="setDecline">Set visible → decline</button>
       <button type="button" id="setDefer">Set visible → defer</button>
     </div>
     <div class="counts" id="counts"></div>
@@ -196,24 +196,24 @@
     let items = [];
     const $ = (id) => document.getElementById(id);
 
-    function finalName(r) {
-      if (r.action !== "approve") return r.name;
+    function finalValue(r) {
+      if (r.action !== "accept") return r.name;
       const t = (r.suggested || "").trim();
       return t || r.name;
     }
 
     function counts() {
-      const c = { approve: 0, keep: 0, defer: 0, willRename: 0 };
+      const c = { accept: 0, decline: 0, defer: 0, edited: 0 };
       for (const r of items) {
         c[r.action] += 1;
-        if (r.action === "approve" && finalName(r) !== r.name) c.willRename += 1;
+        if (r.action === "accept" && finalValue(r) !== r.originalSuggested) c.edited += 1;
       }
       $("counts").innerHTML = `
         <span class="chip"><strong>${items.length}</strong> items</span>
-        <span class="chip">rename <strong>${c.approve}</strong></span>
-        <span class="chip">keep <strong>${c.keep}</strong></span>
+        <span class="chip">accept <strong>${c.accept}</strong></span>
+        <span class="chip">decline <strong>${c.decline}</strong></span>
         <span class="chip">defer <strong>${c.defer}</strong></span>
-        <span class="chip">will rename <strong>${c.willRename}</strong></span>
+        <span class="chip">edited accepts <strong>${c.edited}</strong></span>
       `;
     }
 
@@ -233,7 +233,7 @@
       list.innerHTML = "";
       for (const r of visibleRepos()) {
         const el = document.createElement("article");
-        el.className = `row action-${r.action}`;
+        el.className = `row action-${r.action === "accept" ? "approve" : r.action === "decline" ? "keep" : "defer"}`;
         const badges = [
           r.archived ? "archived" : "active",
           r.fork ? "fork" : null,
@@ -246,20 +246,20 @@
               <div class="current"><a href="${r.url}" target="_blank" rel="noreferrer">${r.name}</a></div>
             </div>
             <div>
-              <div class="label">Target name (editable)</div>
+              <div class="label">Suggested value (editable)</div>
               <div class="suggested"><input type="text" spellcheck="false" value="${r.suggested.replace(/"/g, "&quot;")}" /></div>
             </div>
           </div>
           <div class="desc">${r.description || "<em>No description</em>"}</div>
           <div class="meta">${badges.map((b) => `<span>${b}</span>`).join("")}</div>
           <div>
-            <div class="label">Notes</div>
-            <textarea placeholder="Optional notes / brainstorm seeds…">${r.notes.replace(/</g, "&lt;")}</textarea>
+            <div class="label">Notes (especially for defer)</div>
+            <textarea placeholder="Deferral notes / brainstorm seeds…">${r.notes.replace(/</g, "&lt;")}</textarea>
           </div>
           <div class="opts">
-            <label class="approve" data-on="${r.action === "approve" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "approve" ? "checked" : ""} /> Rename</label>
-            <label class="keep" data-on="${r.action === "keep" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "keep" ? "checked" : ""} /> Keep current</label>
-            <label class="defer" data-on="${r.action === "defer" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "defer" ? "checked" : ""} /> Defer (brainstorm)</label>
+            <label class="approve" data-on="${r.action === "accept" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "accept" ? "checked" : ""} /> Accept</label>
+            <label class="keep" data-on="${r.action === "decline" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "decline" ? "checked" : ""} /> Decline</label>
+            <label class="defer" data-on="${r.action === "defer" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "defer" ? "checked" : ""} /> Defer</label>
           </div>
         `;
         const input = el.querySelector(".suggested input");
@@ -272,7 +272,7 @@
           r.notes = notes.value;
         });
         const labels = el.querySelectorAll(".opts label");
-        const actions = ["approve", "keep", "defer"];
+        const actions = ["accept", "decline", "defer"];
         labels.forEach((lab, i) => {
           lab.querySelector("input").addEventListener("change", () => {
             r.action = actions[i];
@@ -291,11 +291,12 @@
           current: r.name,
           suggested: r.originalSuggested,
           target: (r.suggested || "").trim(),
-          final: finalName(r),
+          final: finalValue(r),
           action: r.action,
           notes: r.notes || "",
-          will_rename: r.action === "approve" && finalName(r) !== r.name,
-          needs_brainstorm: r.action === "defer",
+          accepted: r.action === "accept",
+          applied: r.action === "accept" && finalValue(r) !== r.name,
+          needs_followup: r.action === "defer",
         })),
       };
     }
@@ -307,8 +308,8 @@
       for (const r of visibleRepos()) r.action = action;
       render();
     }
-    $("setApprove").addEventListener("click", () => setVisible("approve"));
-    $("setKeep").addEventListener("click", () => setVisible("keep"));
+    $("setAccept").addEventListener("click", () => setVisible("accept"));
+    $("setDecline").addEventListener("click", () => setVisible("decline"));
     $("setDefer").addEventListener("click", () => setVisible("defer"));
 
     $("submit").addEventListener("click", async () => {
@@ -324,9 +325,10 @@
         });
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
-        const deferCount = body.items.filter((r) => r.needs_brainstorm).length;
+        const deferCount = body.items.filter((r) => r.needs_followup).length;
+        const acceptCount = body.items.filter((r) => r.accepted).length;
         status.className = "ok";
-        status.textContent = `Saved ${data.path} (${data.count} items, ${deferCount} defer). Tell the agent you’re done.`;
+        status.textContent = `Saved ${data.path} (${acceptCount} accept, ${deferCount} defer). Tell the agent you’re done.`;
       } catch (err) {
         const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json" });
         const a = document.createElement("a");
@@ -346,11 +348,11 @@
           .map((r) => ({
             ...r,
             originalSuggested: r.suggested,
-            action: "approve",
+            action: "accept",
             notes: "",
           }));
         render();
-        $("status").textContent = `Ready — ${items.length} items. Adapt this UI to the campaign, then Submit.`;
+        $("status").textContent = `Ready — ${items.length} items. Accept, decline, or defer; edit suggestions as needed.`;
       })
       .catch((err) => {
         $("status").className = "err";

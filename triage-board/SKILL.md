@@ -13,6 +13,25 @@ do **not** dump huge decision tables in chat. Run a local decision board:
 
 **inventory → suggest → local web UI → parse JSON → execute.**
 
+## Decision model (default)
+
+For **any** topic, the agent proposes a suggestion per row. The user generally:
+
+| Action | Meaning |
+|--------|---------|
+| **Accept** | Take the suggestion (or the user-edited value) |
+| **Decline** | Reject the suggestion; keep the current / status quo |
+| **Defer** | Not ready to decide; come back later (often with notes) |
+
+The UI should make it easy to:
+
+- **Edit the suggested value** before accepting (free-text or equivalent)
+- **Add notes on deferral** (why deferred, brainstorm seeds, questions)
+
+Domain-specific labels are fine (“Rename” instead of “Accept”) as long as the
+three outcomes stay clear. Extra fields/actions are OK when the campaign needs
+them — start from this model, then adapt.
+
 ## When to use
 
 - Dozens (or more) of items need an explicit choice
@@ -23,33 +42,33 @@ do **not** dump huge decision tables in chat. Run a local decision board:
 
 | Actor | Does |
 |-------|------|
-| Agent | Inventory, suggest defaults, **adapt** the board UI/JSON to the data, serve UI, parse submitted JSON, execute approved actions |
-| User | Reviews and submits decisions in the local UI |
+| Agent | Inventory, suggest defaults, **adapt** the board UI/JSON to the data, serve UI, parse submitted JSON, execute accepted actions |
+| User | Accepts, declines, or defers each suggestion in the local UI |
 
 ## Core loop
 
-1. **Clarify the schema** from the user’s decision type: what is a row, which
-   fields, which actions (not every campaign is rename/keep/defer).
+1. **Clarify the row** from the user’s decision type: identity fields, what a
+   “suggestion” is, and any extra columns — keep **accept / decline / defer**
+   as the default actions unless the campaign truly needs different ones.
 2. **Inventory** the items; probe lightly; assign **suggested** values.
 3. **Adapt the board** — start from [`scripts/`](scripts/) (`serve.py` +
-   `index.html`), then change columns, labels, actions, filters, and JSON
-   shape to match **this** campaign. Do not force unrelated data into the
-   example rename UX.
+   `index.html`). Keep editable suggestion + deferral notes; reshape columns
+   and wording to match **this** campaign’s data.
 4. Copy the adapted UI to a working directory; write campaign `items.json`
    next to `serve.py`; start the server; point the user at the board — never
    paste the full table into chat.
 5. **Parse** submitted `decisions.json` (`jq`).
-6. **Execute** only what the UI approved. Destructive actions need clear UI
-   intent (and often an explicit extra OK from the user).
+6. **Execute** only accepted rows. Destructive actions need clear UI intent
+   (and often an explicit extra OK from the user). Deferred rows stay open.
 
 ### Progress checklist
 
 ```
 - [ ] Schema matched to the user’s decision type
-- [ ] Board UI adapted (not a blind copy of the example)
+- [ ] Board supports accept / decline / defer (+ edit suggestion, defer notes)
 - [ ] Inventory + suggestions loaded
 - [ ] Decision UI live; user submits
-- [ ] Execute approved actions
+- [ ] Execute accepted actions; track deferrals
 ```
 
 ## Example material
@@ -57,12 +76,13 @@ do **not** dump huge decision tables in chat. Run a local decision board:
 | Path | Role |
 |------|------|
 | [`scripts/serve.py`](scripts/serve.py) | Tiny localhost server (`POST /api/submit` → `decisions.json`) |
-| [`scripts/index.html`](scripts/index.html) | **Example** single board (rename / keep / defer) — adjust freely |
+| [`scripts/index.html`](scripts/index.html) | **Example** board (accept / decline / defer + editable suggestion + notes) |
 | [`references/`](references/) | Worked write-up + fabricated demo `items.json` |
 
-The shipped `index.html` is a **starting template**, not the product. If the
-user is deciding keep/drop, classify, approve/reject, pick owners, etc., change
-the actions and fields accordingly. See [`references/reference.md`](references/reference.md).
+The shipped `index.html` is a **starting template**. Change field labels and
+extra columns for the campaign; keep the accept / decline / defer pattern
+unless the user needs a different action set. Details:
+[`references/reference.md`](references/reference.md).
 
 **Run (after adapting):**
 
@@ -92,6 +112,7 @@ Do **not** commit live `items.json` or `decisions.json`.
 ## Hard preferences
 
 - Batched approval via **local web UI** — not chat walls of tables
-- **Adapt the board to the data** — example rename UX is illustrative only
+- Default actions: **accept / decline / defer**; editable suggestion + defer notes
+- Adapt columns/wording to the data; do not invent a one-off action model without reason
 - Do not commit triage JSON or skill changes unless asked
 - Prefer user-driven irreversible ops when they want that control
