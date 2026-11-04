@@ -28,11 +28,9 @@ Or copy instead of symlink if you prefer a snapshot. Restart or refresh the agen
 Thin [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
 1. **`CI / CI`** — `danielnachumdev/actions` hygiene (`allow-empty: true`; markdown-only repo)
-2. **`Validate skills`** — `./scripts/validate_skills.sh` runs [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) against every repo-root skill
+2. **`Validate skills / Validate skills`** — reusable [`validate-skills.yml`](https://github.com/danielnachumdev/actions/blob/main/.github/workflows/validate-skills.yml) (skills-ref + Cursor frontmatter allowlist)
 
 Dependabot auto-merge waits on both. Semver / CD are omitted (no versioned artifacts).
-
-Skills validation is **dogfooded here** first; the script + job are structured so they can later move into [`danielnachumdev/actions`](https://github.com/danielnachumdev/actions).
 
 ## Add a skill
 
@@ -40,7 +38,7 @@ Skills validation is **dogfooded here** first; the script + job are structured s
 2. Required frontmatter: `name` (lowercase, hyphens OK, max 64) and `description` (max 1024; what + when).
 3. Optional Agent Skills Spec fields: `license`, `compatibility`, `metadata`, `allowed-tools`.
 4. Cursor-only extensions (kept in source; stripped only for skills-ref in CI): `disable-model-invocation`, `paths`, `icon`, `color`. Prefer `disable-model-invocation: true` when the skill should load only when named explicitly.
-5. Run locally: `./scripts/validate_skills.sh`
+5. Validate locally from an [actions](https://github.com/danielnachumdev/actions) checkout: `./scripts/validate_skills.sh /path/to/skills`
 6. Open a PR; both required checks should pass.
 
 Maintainer / agent details: [`AGENTS.md`](AGENTS.md).
