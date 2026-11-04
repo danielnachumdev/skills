@@ -9,7 +9,7 @@ Each skill is a directory at the repo root with a `SKILL.md` (YAML frontmatter +
 | Skill | Purpose |
 | ----- | ------- |
 | [`async`](async/) | Offload the current task to a background Task subagent so the main chat stays free |
-| [`triage-board`](triage-board/) | Batch many decisions via a local web UI (any topic; repo hygiene is one example) |
+| [`triage-board`](triage-board/) | Batch many decisions via a local web UI (topic-agnostic; see skill reference for a worked example) |
 | [`writing-python`](writing-python/) | Conventions for writing and refactoring Python (SRP, strategy/gateway layout, clean imports) |
 
 ## Install
