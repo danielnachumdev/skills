@@ -12,6 +12,7 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 | Skills today | `async/`, `writing-python/` — each is `<dir>/SKILL.md` |
 | Toolchain | Validator lives in [`danielnachumdev/actions`](https://github.com/danielnachumdev/actions) (`scripts/validate_skills.*` + `validate-skills.yml`) |
 | CI | Thin `.github/workflows/ci.yml` → actions hygiene + reusable validate-skills |
+| Permissions | Thin CI needs `id-token: write` (umbrella nests Terraform; GitHub requires OIDC allow even when that lane is skipped) |
 | Semver / CD | Omitted — no published artifacts |
 | Owners | `.github/CODEOWNERS` → `@danielnachumdev` |
 
