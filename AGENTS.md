@@ -9,7 +9,7 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 | Item | Detail |
 | ---- | ------ |
 | Role | Personal Cursor / Agent Skills library (markdown skills at repo root) |
-| Skills today | `async/`, `writing-python/` — each is `<dir>/SKILL.md` |
+| Skills today | `async/`, `triage-board/`, `writing-python/` — each is `<dir>/SKILL.md` |
 | Toolchain | Validator lives in [`danielnachumdev/actions`](https://github.com/danielnachumdev/actions) (`scripts/validate_skills.*` + `validate-skills.yml`) |
 | CI | Thin `.github/workflows/ci.yml` → actions hygiene + reusable validate-skills |
 | Permissions | Thin CI needs `id-token: write` (umbrella nests Terraform; GitHub requires OIDC allow even when that lane is skipped) |
@@ -24,6 +24,10 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 │   └── workflows/
 │       └── ci.yml              # thin: CI + Validate skills + Dependabot auto-merge
 ├── async/SKILL.md
+├── triage-board/
+│   ├── SKILL.md
+│   ├── scripts/            # example board: serve.py + index.html
+│   └── references/         # write-up + fabricated examples/ (for the AI)
 ├── writing-python/SKILL.md
 ├── README.md
 └── AGENTS.md

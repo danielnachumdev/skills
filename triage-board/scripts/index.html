@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Triage board</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222c;
+      --line: #2b3642;
+      --text: #e7eef5;
+      --muted: #8b9aab;
+      --accent: #5b9fd4;
+      --ok: #6bcf8e;
+      --warn: #c4922a;
+      --defer: #8b7ec8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 20, 25, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 0.85rem 1.25rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+    h1 { margin: 0; font-size: 1.15rem; font-weight: 650; }
+    .sub { color: var(--muted); font-size: 0.9rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      align-items: center;
+    }
+    input[type="search"], select, button, input[type="text"], textarea {
+      font: inherit;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+    }
+    input[type="search"] { min-width: 14rem; flex: 1; }
+    textarea {
+      width: 100%;
+      min-height: 2.6rem;
+      resize: vertical;
+    }
+    button { cursor: pointer; }
+    button.primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #061018;
+      font-weight: 650;
+    }
+    .counts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      color: var(--muted);
+    }
+    .chip strong { color: var(--text); }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 5rem;
+      display: grid;
+      gap: 0.65rem;
+    }
+    .row {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: grid;
+      gap: 0.55rem;
+    }
+    .row.action-approve { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+    .row.action-keep { border-color: var(--line); }
+    .row.action-defer { border-color: color-mix(in srgb, var(--defer) 45%, var(--line)); }
+    .names {
+      display: grid;
+      gap: 0.35rem 1rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .names { grid-template-columns: 1fr 1fr; }
+    }
+    .label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.2rem; }
+    .current a { color: var(--text); font-weight: 650; text-decoration: none; }
+    .current a:hover { color: var(--accent); }
+    .suggested input {
+      width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.7rem;
+    }
+    .desc { color: #c5d0db; font-size: 0.92rem; }
+    .opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .opts label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .opts label[data-on="1"].approve {
+      border-color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 18%, transparent);
+    }
+    .opts label[data-on="1"].keep {
+      border-color: var(--warn);
+      background: color-mix(in srgb, var(--warn) 18%, transparent);
+    }
+    .opts label[data-on="1"].defer {
+      border-color: var(--defer);
+      background: color-mix(in srgb, var(--defer) 22%, transparent);
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 20, 25, 0.96);
+      border-top: 1px solid var(--line);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #status { color: var(--muted); font-size: 0.9rem; }
+    #status.ok { color: var(--ok); }
+    #status.err { color: #ff8e8e; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Triage board</h1>
+      <div class="sub">Example board: accept / decline / defer any AI suggestion. Edit the suggested value before accepting; add notes when deferring. Adjust columns/JSON to the campaign data.</div>
+    </div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Filter by name, suggestion, or notes…" />
+      <select id="filterAction">
+        <option value="all">All actions</option>
+        <option value="accept">Accept</option>
+        <option value="decline">Decline</option>
+        <option value="defer">Defer</option>
+      </select>
+      <button type="button" id="setAccept">Set visible → accept</button>
+      <button type="button" id="setDecline">Set visible → decline</button>
+      <button type="button" id="setDefer">Set visible → defer</button>
+    </div>
+    <div class="counts" id="counts"></div>
+  </header>
+
+  <main id="list"></main>
+
+  <footer>
+    <div id="status">Loading…</div>
+    <button class="primary" id="submit" type="button">Submit decisions</button>
+  </footer>
+
+  <script>
+    let items = [];
+    const $ = (id) => document.getElementById(id);
+
+    function finalValue(r) {
+      if (r.action !== "accept") return r.name;
+      const t = (r.suggested || "").trim();
+      return t || r.name;
+    }
+
+    function counts() {
+      const c = { accept: 0, decline: 0, defer: 0, edited: 0 };
+      for (const r of items) {
+        c[r.action] += 1;
+        if (r.action === "accept" && finalValue(r) !== r.originalSuggested) c.edited += 1;
+      }
+      $("counts").innerHTML = `
+        <span class="chip"><strong>${items.length}</strong> items</span>
+        <span class="chip">accept <strong>${c.accept}</strong></span>
+        <span class="chip">decline <strong>${c.decline}</strong></span>
+        <span class="chip">defer <strong>${c.defer}</strong></span>
+        <span class="chip">edited accepts <strong>${c.edited}</strong></span>
+      `;
+    }
+
+    function visibleRepos() {
+      const q = $("q").value.trim().toLowerCase();
+      const fa = $("filterAction").value;
+      return items.filter((r) => {
+        if (fa !== "all" && r.action !== fa) return false;
+        if (!q) return true;
+        const hay = `${r.name} ${r.suggested} ${r.description} ${r.notes}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function render() {
+      const list = $("list");
+      list.innerHTML = "";
+      for (const r of visibleRepos()) {
+        const el = document.createElement("article");
+        el.className = `row action-${r.action === "accept" ? "approve" : r.action === "decline" ? "keep" : "defer"}`;
+        const badges = [
+          r.archived ? "archived" : "active",
+          r.fork ? "fork" : null,
+          r.language,
+        ].filter(Boolean);
+        el.innerHTML = `
+          <div class="names">
+            <div>
+              <div class="label">Current</div>
+              <div class="current"><a href="${r.url}" target="_blank" rel="noreferrer">${r.name}</a></div>
+            </div>
+            <div>
+              <div class="label">Suggested value (editable)</div>
+              <div class="suggested"><input type="text" spellcheck="false" value="${r.suggested.replace(/"/g, "&quot;")}" /></div>
+            </div>
+          </div>
+          <div class="desc">${r.description || "<em>No description</em>"}</div>
+          <div class="meta">${badges.map((b) => `<span>${b}</span>`).join("")}</div>
+          <div>
+            <div class="label">Notes (especially for defer)</div>
+            <textarea placeholder="Deferral notes / brainstorm seeds…">${r.notes.replace(/</g, "&lt;")}</textarea>
+          </div>
+          <div class="opts">
+            <label class="approve" data-on="${r.action === "accept" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "accept" ? "checked" : ""} /> Accept</label>
+            <label class="keep" data-on="${r.action === "decline" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "decline" ? "checked" : ""} /> Decline</label>
+            <label class="defer" data-on="${r.action === "defer" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "defer" ? "checked" : ""} /> Defer</label>
+          </div>
+        `;
+        const input = el.querySelector(".suggested input");
+        const notes = el.querySelector("textarea");
+        input.addEventListener("input", () => {
+          r.suggested = input.value;
+          counts();
+        });
+        notes.addEventListener("input", () => {
+          r.notes = notes.value;
+        });
+        const labels = el.querySelectorAll(".opts label");
+        const actions = ["accept", "decline", "defer"];
+        labels.forEach((lab, i) => {
+          lab.querySelector("input").addEventListener("change", () => {
+            r.action = actions[i];
+            render();
+          });
+        });
+        list.appendChild(el);
+      }
+      counts();
+    }
+
+    function payload() {
+      return {
+        submitted_at: new Date().toISOString(),
+        items: items.map((r) => ({
+          current: r.name,
+          suggested: r.originalSuggested,
+          target: (r.suggested || "").trim(),
+          final: finalValue(r),
+          action: r.action,
+          notes: r.notes || "",
+          accepted: r.action === "accept",
+          applied: r.action === "accept" && finalValue(r) !== r.name,
+          needs_followup: r.action === "defer",
+        })),
+      };
+    }
+
+    $("q").addEventListener("input", render);
+    $("filterAction").addEventListener("change", render);
+
+    function setVisible(action) {
+      for (const r of visibleRepos()) r.action = action;
+      render();
+    }
+    $("setAccept").addEventListener("click", () => setVisible("accept"));
+    $("setDecline").addEventListener("click", () => setVisible("decline"));
+    $("setDefer").addEventListener("click", () => setVisible("defer"));
+
+    $("submit").addEventListener("click", async () => {
+      const body = payload();
+      const status = $("status");
+      status.className = "";
+      status.textContent = "Submitting…";
+      try {
+        const res = await fetch("/api/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        const deferCount = body.items.filter((r) => r.needs_followup).length;
+        const acceptCount = body.items.filter((r) => r.accepted).length;
+        status.className = "ok";
+        status.textContent = `Saved ${data.path} (${acceptCount} accept, ${deferCount} defer). Tell the agent you’re done.`;
+      } catch (err) {
+        const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "decisions.json";
+        a.click();
+        status.className = "err";
+        status.textContent = `Server save failed (${err.message}). Downloaded decisions.json — place it next to serve.py in the working directory.`;
+      }
+    });
+
+    fetch("/items.json")
+      .then((r) => r.json())
+      .then((data) => {
+        items = (data.items || [])
+          .filter((r) => r.name !== r.suggested)
+          .map((r) => ({
+            ...r,
+            originalSuggested: r.suggested,
+            action: "accept",
+            notes: "",
+          }));
+        render();
+        $("status").textContent = `Ready — ${items.length} items. Accept, decline, or defer; edit suggestions as needed.`;
+      })
+      .catch((err) => {
+        $("status").className = "err";
+        $("status").textContent = `Failed to load items.json: ${err.message}`;
+      });
+  </script>
+</body>
+</html>
