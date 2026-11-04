@@ -7,10 +7,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+  pull-requests: read
+  id-token: write
 
 jobs:
-  yaml:
-    name: YAML
-    uses: danielnachumdev/actions/.github/workflows/github-yaml.yml@v1.6.2
+  ci:
+    name: CI
+    uses: danielnachumdev/actions/.github/workflows/ci.yml@latest
+    with:
+      allow-empty: true
