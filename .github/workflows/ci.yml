@@ -18,6 +18,6 @@ permissions:
 jobs:
   ci:
     name: CI
-    uses: danielnachumdev/actions/.github/workflows/ci.yml@v1.6.0
+    uses: danielnachumdev/actions/.github/workflows/ci.yml@v1.5.0
     with:
       allow-empty: true
