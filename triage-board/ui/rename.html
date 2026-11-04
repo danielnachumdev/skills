@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rename board</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222c;
+      --line: #2b3642;
+      --text: #e7eef5;
+      --muted: #8b9aab;
+      --accent: #5b9fd4;
+      --ok: #6bcf8e;
+      --warn: #c4922a;
+      --defer: #8b7ec8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 20, 25, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 0.85rem 1.25rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+    h1 { margin: 0; font-size: 1.15rem; font-weight: 650; }
+    .sub { color: var(--muted); font-size: 0.9rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      align-items: center;
+    }
+    input[type="search"], select, button, input[type="text"], textarea {
+      font: inherit;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+    }
+    input[type="search"] { min-width: 14rem; flex: 1; }
+    textarea {
+      width: 100%;
+      min-height: 2.6rem;
+      resize: vertical;
+    }
+    button { cursor: pointer; }
+    button.primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #061018;
+      font-weight: 650;
+    }
+    .counts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      color: var(--muted);
+    }
+    .chip strong { color: var(--text); }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 5rem;
+      display: grid;
+      gap: 0.65rem;
+    }
+    .row {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: grid;
+      gap: 0.55rem;
+    }
+    .row.action-approve { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+    .row.action-keep { border-color: var(--line); }
+    .row.action-defer { border-color: color-mix(in srgb, var(--defer) 45%, var(--line)); }
+    .names {
+      display: grid;
+      gap: 0.35rem 1rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .names { grid-template-columns: 1fr 1fr; }
+    }
+    .label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.2rem; }
+    .current a { color: var(--text); font-weight: 650; text-decoration: none; }
+    .current a:hover { color: var(--accent); }
+    .suggested input {
+      width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.7rem;
+    }
+    .desc { color: #c5d0db; font-size: 0.92rem; }
+    .opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .opts label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .opts label[data-on="1"].approve {
+      border-color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 18%, transparent);
+    }
+    .opts label[data-on="1"].keep {
+      border-color: var(--warn);
+      background: color-mix(in srgb, var(--warn) 18%, transparent);
+    }
+    .opts label[data-on="1"].defer {
+      border-color: var(--defer);
+      background: color-mix(in srgb, var(--defer) 22%, transparent);
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 20, 25, 0.96);
+      border-top: 1px solid var(--line);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #status { color: var(--muted); font-size: 0.9rem; }
+    #status.ok { color: var(--ok); }
+    #status.err { color: #ff8e8e; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Rename board</h1>
+      <div class="sub">Example rename board. Edit the target name freely. Choose rename, keep current, or defer (needs brainstorm). Optional notes. Submit when finished.</div>
+    </div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Filter by name, suggestion, or notes…" />
+      <select id="filterAction">
+        <option value="all">All actions</option>
+        <option value="approve">Rename</option>
+        <option value="keep">Keep current</option>
+        <option value="defer">Defer</option>
+      </select>
+      <button type="button" id="setApprove">Set visible → rename</button>
+      <button type="button" id="setKeep">Set visible → keep</button>
+      <button type="button" id="setDefer">Set visible → defer</button>
+    </div>
+    <div class="counts" id="counts"></div>
+  </header>
+
+  <main id="list"></main>
+
+  <footer>
+    <div id="status">Loading…</div>
+    <button class="primary" id="submit" type="button">Submit rename decisions</button>
+  </footer>
+
+  <script>
+    let repos = [];
+    const $ = (id) => document.getElementById(id);
+
+    function finalName(r) {
+      if (r.action !== "approve") return r.name;
+      const t = (r.suggested || "").trim();
+      return t || r.name;
+    }
+
+    function counts() {
+      const c = { approve: 0, keep: 0, defer: 0, willRename: 0 };
+      for (const r of repos) {
+        c[r.action] += 1;
+        if (r.action === "approve" && finalName(r) !== r.name) c.willRename += 1;
+      }
+      $("counts").innerHTML = `
+        <span class="chip"><strong>${repos.length}</strong> repos</span>
+        <span class="chip">rename <strong>${c.approve}</strong></span>
+        <span class="chip">keep <strong>${c.keep}</strong></span>
+        <span class="chip">defer <strong>${c.defer}</strong></span>
+        <span class="chip">will rename <strong>${c.willRename}</strong></span>
+      `;
+    }
+
+    function visibleRepos() {
+      const q = $("q").value.trim().toLowerCase();
+      const fa = $("filterAction").value;
+      return repos.filter((r) => {
+        if (fa !== "all" && r.action !== fa) return false;
+        if (!q) return true;
+        const hay = `${r.name} ${r.suggested} ${r.description} ${r.notes}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function render() {
+      const list = $("list");
+      list.innerHTML = "";
+      for (const r of visibleRepos()) {
+        const el = document.createElement("article");
+        el.className = `row action-${r.action}`;
+        const badges = [
+          r.archived ? "archived" : "active",
+          r.fork ? "fork" : null,
+          r.language,
+        ].filter(Boolean);
+        el.innerHTML = `
+          <div class="names">
+            <div>
+              <div class="label">Current</div>
+              <div class="current"><a href="${r.url}" target="_blank" rel="noreferrer">${r.name}</a></div>
+            </div>
+            <div>
+              <div class="label">Target name (editable)</div>
+              <div class="suggested"><input type="text" spellcheck="false" value="${r.suggested.replace(/"/g, "&quot;")}" /></div>
+            </div>
+          </div>
+          <div class="desc">${r.description || "<em>No description</em>"}</div>
+          <div class="meta">${badges.map((b) => `<span>${b}</span>`).join("")}</div>
+          <div>
+            <div class="label">Notes</div>
+            <textarea placeholder="Optional notes / brainstorm seeds…">${r.notes.replace(/</g, "&lt;")}</textarea>
+          </div>
+          <div class="opts">
+            <label class="approve" data-on="${r.action === "approve" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "approve" ? "checked" : ""} /> Rename</label>
+            <label class="keep" data-on="${r.action === "keep" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "keep" ? "checked" : ""} /> Keep current</label>
+            <label class="defer" data-on="${r.action === "defer" ? "1" : "0"}"><input type="radio" name="${r.name}-a" ${r.action === "defer" ? "checked" : ""} /> Defer (brainstorm)</label>
+          </div>
+        `;
+        const input = el.querySelector(".suggested input");
+        const notes = el.querySelector("textarea");
+        input.addEventListener("input", () => {
+          r.suggested = input.value;
+          counts();
+        });
+        notes.addEventListener("input", () => {
+          r.notes = notes.value;
+        });
+        const labels = el.querySelectorAll(".opts label");
+        const actions = ["approve", "keep", "defer"];
+        labels.forEach((lab, i) => {
+          lab.querySelector("input").addEventListener("change", () => {
+            r.action = actions[i];
+            render();
+          });
+        });
+        list.appendChild(el);
+      }
+      counts();
+    }
+
+    function payload() {
+      return {
+        submitted_at: new Date().toISOString(),
+        repos: repos.map((r) => ({
+          current: r.name,
+          suggested: r.originalSuggested,
+          target: (r.suggested || "").trim(),
+          final: finalName(r),
+          action: r.action,
+          notes: r.notes || "",
+          will_rename: r.action === "approve" && finalName(r) !== r.name,
+          needs_brainstorm: r.action === "defer",
+        })),
+      };
+    }
+
+    $("q").addEventListener("input", render);
+    $("filterAction").addEventListener("change", render);
+
+    function setVisible(action) {
+      for (const r of visibleRepos()) r.action = action;
+      render();
+    }
+    $("setApprove").addEventListener("click", () => setVisible("approve"));
+    $("setKeep").addEventListener("click", () => setVisible("keep"));
+    $("setDefer").addEventListener("click", () => setVisible("defer"));
+
+    $("submit").addEventListener("click", async () => {
+      const body = payload();
+      const status = $("status");
+      status.className = "";
+      status.textContent = "Submitting…";
+      try {
+        const res = await fetch("/api/submit-renames", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        const deferCount = body.repos.filter((r) => r.needs_brainstorm).length;
+        status.className = "ok";
+        status.textContent = `Saved ${data.path} (${data.rename_count} renames, ${deferCount} defer). Tell the agent you’re done.`;
+      } catch (err) {
+        const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "rename-decisions.json";
+        a.click();
+        status.className = "err";
+        status.textContent = `Server save failed (${err.message}). Downloaded rename-decisions.json — place it next to serve.py in the UI working directory.`;
+      }
+    });
+
+    fetch("/renames.json")
+      .then((r) => r.json())
+      .then((data) => {
+        repos = data.repos
+          .filter((r) => r.name !== r.suggested)
+          .map((r) => ({
+            ...r,
+            originalSuggested: r.suggested,
+            action: "approve",
+            notes: "",
+          }));
+        render();
+        $("status").textContent = `Ready — ${repos.length} suggested renames. Edit names/notes, then Submit.`;
+      })
+      .catch((err) => {
+        $("status").className = "err";
+        $("status").textContent = `Failed to load renames.json: ${err.message}`;
+      });
+  </script>
+</body>
+</html>

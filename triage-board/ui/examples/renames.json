@@ -1,0 +1,31 @@
+{
+  "repos": [
+    {
+      "name": "OldHelper",
+      "suggested": "old-helper",
+      "url": "https://github.com/OWNER/OldHelper",
+      "description": "Fabricated rename candidate (casing / kebab).",
+      "archived": true,
+      "fork": false,
+      "language": "Python"
+    },
+    {
+      "name": "demo-api",
+      "suggested": "demo-api",
+      "url": "https://github.com/OWNER/demo-api",
+      "description": "Same name — hidden by the rename board filter.",
+      "archived": false,
+      "fork": false,
+      "language": "Python"
+    },
+    {
+      "name": "miscUtils",
+      "suggested": "misc-utils",
+      "url": "https://github.com/OWNER/miscUtils",
+      "description": "Fabricated second rename row.",
+      "archived": false,
+      "fork": false,
+      "language": "TypeScript"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "repos": [
+    {
+      "name": "demo-api",
+      "url": "https://github.com/OWNER/demo-api",
+      "description": "Fabricated sample service for triage-board demos.",
+      "private": false,
+      "archived": false,
+      "fork": false,
+      "language": "Python",
+      "disk_kb": 120,
+      "pushed_at": "2026-11-03",
+      "created_at": "2024-01-15",
+      "suggested_target": "keep",
+      "suggested_readme": "no",
+      "target": "keep",
+      "readme": "no",
+      "decided": false
+    },
+    {
+      "name": "old-helper",
+      "url": "https://github.com/OWNER/old-helper",
+      "description": "Fabricated finished one-off; archive candidate.",
+      "private": false,
+      "archived": false,
+      "fork": false,
+      "language": "Python",
+      "disk_kb": 48,
+      "pushed_at": "2023-06-01",
+      "created_at": "2022-03-10",
+      "suggested_target": "archive",
+      "suggested_readme": "yes",
+      "target": "archive",
+      "readme": "yes",
+      "decided": false
+    },
+    {
+      "name": "empty-stub",
+      "url": "https://github.com/OWNER/empty-stub",
+      "description": "Fabricated empty placeholder; delete candidate.",
+      "private": true,
+      "archived": false,
+      "fork": true,
+      "language": "",
+      "disk_kb": 4,
+      "pushed_at": "2021-01-02",
+      "created_at": "2021-01-01",
+      "suggested_target": "delete",
+      "suggested_readme": "NA",
+      "target": "delete",
+      "readme": "NA",
+      "decided": false
+    }
+  ]
+}

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Triage board</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222c;
+      --line: #2b3642;
+      --text: #e7eef5;
+      --muted: #8b9aab;
+      --keep: #3d9a6a;
+      --archive: #c4922a;
+      --delete: #c45c5c;
+      --accent: #5b9fd4;
+      --ok: #6bcf8e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 20, 25, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 0.85rem 1.25rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 650;
+    }
+    .sub { color: var(--muted); font-size: 0.9rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      align-items: center;
+    }
+    input[type="search"], select, button {
+      font: inherit;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+    }
+    input[type="search"] { min-width: 14rem; flex: 1; }
+    button {
+      cursor: pointer;
+    }
+    button.primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #061018;
+      font-weight: 650;
+    }
+    button.primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .counts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      color: var(--muted);
+    }
+    .chip strong { color: var(--text); }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 5rem;
+      display: grid;
+      gap: 0.65rem;
+    }
+    .row {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: grid;
+      gap: 0.65rem;
+    }
+    .row.decided { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+    .row-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .name a {
+      color: var(--text);
+      font-weight: 650;
+      text-decoration: none;
+    }
+    .name a:hover { color: var(--accent); }
+    .meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.7rem;
+    }
+    .desc { color: #c5d0db; }
+    .suggest {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .controls {
+      display: grid;
+      gap: 0.55rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .controls { grid-template-columns: 1.2fr 0.8fr auto; align-items: end; }
+    }
+    fieldset {
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.45rem 0.6rem 0.55rem;
+    }
+    legend {
+      padding: 0 0.3rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .opts label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .opts input { accent-color: var(--accent); }
+    .opts label.keep[data-on="1"] { border-color: var(--keep); background: color-mix(in srgb, var(--keep) 18%, transparent); }
+    .opts label.archive[data-on="1"] { border-color: var(--archive); background: color-mix(in srgb, var(--archive) 18%, transparent); }
+    .opts label.delete[data-on="1"] { border-color: var(--delete); background: color-mix(in srgb, var(--delete) 18%, transparent); }
+    .mark {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding-bottom: 0.15rem;
+    }
+    .mark input { width: 1rem; height: 1rem; accent-color: var(--ok); }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 20, 25, 0.96);
+      border-top: 1px solid var(--line);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #status { color: var(--muted); font-size: 0.9rem; }
+    #status.ok { color: var(--ok); }
+    #status.err { color: #ff8e8e; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Triage board</h1>
+      <div class="sub">Example decision board (keep / archive / delete + README). Adapt fields for other campaigns. Mark decided as you go, then submit once.</div>
+    </div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Filter by name or description…" />
+      <select id="filterTarget">
+        <option value="all">All targets</option>
+        <option value="keep">Suggested keep</option>
+        <option value="archive">Suggested archive</option>
+        <option value="delete">Suggested delete</option>
+      </select>
+      <select id="filterDecided">
+        <option value="all">All rows</option>
+        <option value="pending">Pending only</option>
+        <option value="decided">Decided only</option>
+      </select>
+      <button type="button" id="acceptVisible">Accept suggestion for visible</button>
+      <button type="button" id="markVisible">Mark visible decided</button>
+    </div>
+    <div class="counts" id="counts"></div>
+  </header>
+
+  <main id="list"></main>
+
+  <footer>
+    <div id="status">Load the page from the local server, then submit when finished.</div>
+    <button class="primary" id="submit" type="button">Submit decisions</button>
+  </footer>
+
+  <script>
+    const TARGETS = ["keep", "archive", "delete"];
+    const READMES = ["yes", "no", "NA"];
+    let repos = [];
+
+    const $ = (id) => document.getElementById(id);
+    const listEl = $("list");
+    const statusEl = $("status");
+
+    function readmeForTarget(target, current) {
+      if (target === "delete") return "NA";
+      if (current === "NA") return "no";
+      return current;
+    }
+
+    function counts() {
+      const c = { keep: 0, archive: 0, delete: 0, decided: 0, readmeYes: 0 };
+      for (const r of repos) {
+        c[r.target] += 1;
+        if (r.decided) c.decided += 1;
+        if (r.readme === "yes") c.readmeYes += 1;
+      }
+      $("counts").innerHTML = `
+        <span class="chip"><strong>${c.decided}</strong> / ${repos.length} decided</span>
+        <span class="chip">keep <strong>${c.keep}</strong></span>
+        <span class="chip">archive <strong>${c.archive}</strong></span>
+        <span class="chip">delete <strong>${c.delete}</strong></span>
+        <span class="chip">readme yes <strong>${c.readmeYes}</strong></span>
+      `;
+      $("submit").disabled = false;
+    }
+
+    function visibleRepos() {
+      const q = $("q").value.trim().toLowerCase();
+      const ft = $("filterTarget").value;
+      const fd = $("filterDecided").value;
+      return repos.filter((r) => {
+        if (ft !== "all" && r.suggested_target !== ft) return false;
+        if (fd === "pending" && r.decided) return false;
+        if (fd === "decided" && !r.decided) return false;
+        if (!q) return true;
+        const hay = `${r.name} ${r.description} ${r.language}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function render() {
+      const rows = visibleRepos();
+      listEl.innerHTML = "";
+      for (const r of rows) {
+        const el = document.createElement("article");
+        el.className = "row" + (r.decided ? " decided" : "");
+        el.dataset.name = r.name;
+        const badges = [
+          r.private ? "private" : "public",
+          r.archived ? "already-archived" : null,
+          r.fork ? "fork" : null,
+          r.language,
+          `${r.disk_kb} KB`,
+          `pushed ${r.pushed_at}`,
+        ].filter(Boolean);
+        el.innerHTML = `
+          <div class="row-top">
+            <div class="name"><a href="${r.url}" target="_blank" rel="noreferrer">${r.name}</a></div>
+            <div class="meta">${badges.map((b) => `<span>${b}</span>`).join("")}</div>
+          </div>
+          <div class="desc">${r.description || "<em>No description</em>"}</div>
+          <div class="suggest">Suggested: <strong>${r.suggested_target}</strong> · README <strong>${r.suggested_readme}</strong></div>
+          <div class="controls">
+            <fieldset>
+              <legend>Target</legend>
+              <div class="opts" data-kind="target"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Update README</legend>
+              <div class="opts" data-kind="readme"></div>
+            </fieldset>
+            <label class="mark"><input type="checkbox" data-decided ${r.decided ? "checked" : ""} /> Decided</label>
+          </div>
+        `;
+        const targetBox = el.querySelector('[data-kind="target"]');
+        for (const t of TARGETS) {
+          const id = `${r.name}-t-${t}`;
+          const lab = document.createElement("label");
+          lab.className = t;
+          lab.dataset.on = r.target === t ? "1" : "0";
+          lab.innerHTML = `<input type="radio" name="${r.name}-target" value="${t}" ${r.target === t ? "checked" : ""} /> ${t}`;
+          targetBox.appendChild(lab);
+        }
+        const readmeBox = el.querySelector('[data-kind="readme"]');
+        for (const v of READMES) {
+          const disabled = r.target === "delete" ? v !== "NA" : v === "NA";
+          const lab = document.createElement("label");
+          lab.dataset.on = r.readme === v ? "1" : "0";
+          lab.innerHTML = `<input type="radio" name="${r.name}-readme" value="${v}" ${r.readme === v ? "checked" : ""} ${disabled ? "disabled" : ""} /> ${v}`;
+          readmeBox.appendChild(lab);
+        }
+        el.addEventListener("change", (ev) => {
+          const t = ev.target;
+          if (t.matches('input[type="radio"][name$="-target"]')) {
+            r.target = t.value;
+            r.readme = readmeForTarget(r.target, r.readme);
+            render();
+            counts();
+            return;
+          }
+          if (t.matches('input[type="radio"][name$="-readme"]')) {
+            r.readme = t.value;
+            counts();
+            // refresh on-state borders
+            for (const lab of readmeBox.querySelectorAll("label")) {
+              lab.dataset.on = lab.querySelector("input").value === r.readme ? "1" : "0";
+            }
+            return;
+          }
+          if (t.matches("[data-decided]")) {
+            r.decided = t.checked;
+            el.classList.toggle("decided", r.decided);
+            counts();
+          }
+        });
+        listEl.appendChild(el);
+      }
+      counts();
+    }
+
+    function payload() {
+      return {
+        submitted_at: new Date().toISOString(),
+        repos: repos.map((r) => ({
+          name: r.name,
+          target: r.target,
+          readme: r.target === "delete" ? "NA" : r.readme,
+          decided: !!r.decided,
+          suggested_target: r.suggested_target,
+          suggested_readme: r.suggested_readme,
+        })),
+      };
+    }
+
+    $("q").addEventListener("input", render);
+    $("filterTarget").addEventListener("change", render);
+    $("filterDecided").addEventListener("change", render);
+
+    $("acceptVisible").addEventListener("click", () => {
+      for (const r of visibleRepos()) {
+        r.target = r.suggested_target;
+        r.readme = r.suggested_readme;
+      }
+      render();
+    });
+
+    $("markVisible").addEventListener("click", () => {
+      for (const r of visibleRepos()) r.decided = true;
+      render();
+    });
+
+    $("submit").addEventListener("click", async () => {
+      const pending = repos.filter((r) => !r.decided);
+      if (pending.length) {
+        const ok = confirm(`${pending.length} repos are not marked decided. Submit anyway?`);
+        if (!ok) return;
+      }
+      const body = payload();
+      statusEl.className = "";
+      statusEl.textContent = "Submitting…";
+      try {
+        const res = await fetch("/api/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        statusEl.className = "ok";
+        statusEl.textContent = `Saved ${data.path} (${data.count} repos). Tell the agent you’re done.`;
+      } catch (err) {
+        // Fallback: download JSON if server POST fails
+        const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "decisions.json";
+        a.click();
+        statusEl.className = "err";
+        statusEl.textContent = `Server save failed (${err.message}). Downloaded decisions.json — place it next to serve.py in the UI working directory.`;
+      }
+    });
+
+    fetch("/repos.json")
+      .then((r) => r.json())
+      .then((data) => {
+        repos = data.repos;
+        render();
+        statusEl.textContent = "Ready — work through the list, then Submit decisions.";
+      })
+      .catch((err) => {
+        statusEl.className = "err";
+        statusEl.textContent = `Failed to load repos.json: ${err.message}`;
+      });
+  </script>
+</body>
+</html>

@@ -24,7 +24,10 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 │   └── workflows/
 │       └── ci.yml              # thin: CI + Validate skills + Dependabot auto-merge
 ├── async/SKILL.md
-├── triage-board/SKILL.md
+├── triage-board/
+│   ├── SKILL.md
+│   ├── reference.md
+│   └── ui/                 # serve.py + HTML + examples/ (PII-safe demos)
 ├── writing-python/SKILL.md
 ├── README.md
 └── AGENTS.md

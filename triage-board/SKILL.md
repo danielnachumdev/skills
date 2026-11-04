@@ -51,17 +51,32 @@ For a full worked example of one campaign (schemas, UI layout, commands), see
 
 ## UI scaffold
 
-Reuse or copy a local triage UI project (static HTML + tiny Python server)
-with decision pages and JSON drop-ins. Adapt pages/fields to the campaign
-schema. Scaffold layout and example payloads: [reference.md](reference.md).
+This skill ships a local UI under [`ui/`](ui/) (`serve.py`, `index.html`,
+`rename.html`). Fabricated demo payloads live in [`ui/examples/`](ui/examples/).
+Campaign schemas and the worked example: [reference.md](reference.md).
 
-Typical start:
+**Run a board:**
+
+1. Copy `ui/` to a working directory (or work on a copy) so campaign JSON is
+   not written into the skill install tree.
+2. Place campaign input JSON next to `serve.py` (for the shipped example UI:
+   `repos.json` / `renames.json` — start from `ui/examples/` and replace with
+   real inventory **locally only**).
+3. Adapt HTML/fields when the campaign schema differs from the example.
+4. Start the server and point the user at it — never paste the full table into
+   chat.
 
 ```bash
-cd /path/to/triage-ui
+cp -R /path/to/triage-board/ui /tmp/triage-ui-work
+cd /tmp/triage-ui-work
+cp examples/repos.json ./repos.json   # or write campaign JSON
 python3 serve.py
-# → http://127.0.0.1:8765/
+# Decision board: http://127.0.0.1:8765/
+# Rename board:   http://127.0.0.1:8765/rename.html
 ```
+
+Do **not** commit live `repos.json`, `decisions.json`, `renames.json`, or
+`rename-decisions.json`.
 
 ## PII / data safety
 

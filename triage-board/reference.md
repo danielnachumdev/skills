@@ -4,33 +4,38 @@ This file is a **worked example** of one triage-board campaign (GitHub repo
 hygiene). The skill itself is topic-agnostic — invent JSON fields and UI pages
 that match the **current** decision set. Copy the **shape**, not the domain.
 
-**PII:** examples use fabricated placeholders only (`OWNER`, `example-repo`,
+Shipped UI: [`ui/`](ui/) (`serve.py`, `index.html`, `rename.html`). Demo-only
+JSON: [`ui/examples/`](ui/examples/).
+
+**PII:** examples use fabricated placeholders only (`OWNER`, `demo-api`,
 `192.0.2.0/24`-style dummies). Do not commit live decision JSON; do not paste
 full live inventories into chat or PRs.
 
-## UI scaffold (this example)
+## UI scaffold
 
-Reuse or copy a local triage UI project under a path you choose (e.g.
-`/path/to/triage-ui`). For other campaigns, adapt or replace pages/endpoints
-so rows and actions match that schema.
-
-```text
-<triage-ui>/
-  serve.py          # 127.0.0.1:8765
-  index.html        # keep/archive/delete + README
-  rename.html       # rename / keep / defer
-  repos.json        # Phase 2 input
-  decisions.json    # Phase 2 output (POST /api/submit)
-  renames.json      # Phase 3 input
-  rename-decisions.json  # Phase 3 output (POST /api/submit-renames)
-```
+Copy `ui/` to a working directory, drop campaign JSON next to `serve.py`, then:
 
 ```bash
-cd /path/to/triage-ui
+cd /path/to/triage-ui-work
 python3 serve.py
 # Decision board: http://127.0.0.1:8765/
 # Rename board:   http://127.0.0.1:8765/rename.html
 ```
+
+```text
+<triage-ui-work>/
+  serve.py                 # from skill ui/
+  index.html
+  rename.html
+  repos.json               # campaign input (not committed)
+  decisions.json           # Phase 2 output (POST /api/submit)
+  renames.json             # Phase 3 input
+  rename-decisions.json    # Phase 3 output (POST /api/submit-renames)
+```
+
+For other campaigns, adapt or replace pages/endpoints so rows and actions match
+that schema. `serve.py` currently accepts `repos` lists on
+`/api/submit` and `/api/submit-renames`.
 
 ---
 
@@ -59,8 +64,8 @@ Use when the large decision set is GitHub repos under an `OWNER`.
    fork/archived/private, description. Prefer `gh api` / sparse checks over
    full clones.
 3. Assign **suggested** `target` and `readme` using heuristics below.
-4. Write `repos.json`. Pre-fill `target`/`readme` from suggestions;
-   `decided: false`.
+4. Write `repos.json` next to `serve.py` in the working copy. Pre-fill
+   `target`/`readme` from suggestions; `decided: false`.
 
 #### Heuristics
 
@@ -77,7 +82,7 @@ Use when the large decision set is GitHub repos under an `OWNER`.
 
 ### Phase 2 — Decision UI (keep / archive / delete)
 
-1. Place `repos.json` next to `serve.py`.
+1. Ensure `repos.json` is next to `serve.py` in the working copy.
 2. Start server → `http://127.0.0.1:8765/`
 3. User submits → `decisions.json` via `POST /api/submit`.
 4. Execute:
@@ -135,12 +140,14 @@ If a delete-candidate still has unique useful code:
 
 ## Example: `repos.json` (Phase 2 input)
 
+See also [`ui/examples/repos.json`](ui/examples/repos.json).
+
 ```json
 {
   "repos": [
     {
-      "name": "example-repo",
-      "url": "https://github.com/OWNER/example-repo",
+      "name": "demo-api",
+      "url": "https://github.com/OWNER/demo-api",
       "description": "…",
       "private": false,
       "archived": false,
@@ -173,7 +180,7 @@ If a delete-candidate still has unique useful code:
   "submitted_at": "ISO-8601",
   "repos": [
     {
-      "name": "example-repo",
+      "name": "demo-api",
       "target": "archive",
       "readme": "no",
       "decided": true,
@@ -193,6 +200,8 @@ jq -r '.repos[] | select(.readme=="yes") | "\(.name) \(.target)"' decisions.json
 ---
 
 ## Example: `renames.json` (Phase 3 input)
+
+See also [`ui/examples/renames.json`](ui/examples/renames.json).
 
 ```json
 {
