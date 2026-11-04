@@ -24,14 +24,4 @@ jobs:
 
   validate-skills:
     name: Validate skills
-    # DEBUG: call known-good reusable workflow to isolate startup_failure
     uses: danielnachumdev/actions/.github/workflows/github-yaml.yml@latest
-
-  dependabot-auto-merge:
-    name: Dependabot auto-merge
-    needs: [ci, validate-skills]
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
-    permissions:
-      contents: write
-      pull-requests: write
-    uses: danielnachumdev/actions/.github/workflows/dependabot-auto-merge.yml@latest
