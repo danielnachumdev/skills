@@ -29,9 +29,7 @@ jobs:
 
   validate-skills:
     name: Validate skills
-    # Pin the actions commit that introduced validate-skills.yml until @latest
-    # is retagged after https://github.com/danielnachumdev/actions/pull/41.
-    uses: danielnachumdev/actions/.github/workflows/validate-skills.yml@9701251d75468681c1149cf089c04d279263185b
+    uses: danielnachumdev/actions/.github/workflows/validate-skills.yml@latest
 
   dependabot-auto-merge:
     name: Dependabot auto-merge

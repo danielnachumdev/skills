@@ -57,7 +57,7 @@ Prefer required status checks:
 
 Dependabot auto-merge `needs: [ci, validate-skills]`.
 
-Until the actions release retags `latest` after the validate-skills PR, thin CI may pin an immutable actions commit SHA for `validate-skills.yml`; switch back to `@latest` once that tag moves.
+Pin `validate-skills.yml@latest` (floating tag moved by actions CD).
 
 ---
 
