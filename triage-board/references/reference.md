@@ -2,10 +2,13 @@
 
 Example material for the agent. Default decision model (any topic): the AI
 suggests a value per row; the user **accepts**, **declines**, or **defers**.
-The UI should allow **editing the suggestion** before accept and **notes** on
-defer. Accept applies **final** (edited) values; decline is status quo; defer
-is unfinished work after submit. One board is enough for “react to a
-suggestion”; domain labels are cosmetic. Adapt
+The UI should allow **editing the suggestion** before accept and **notes on
+any action**. Accept applies **final** (edited) values; decline rejects the
+suggested value as written (still read notes — they may carry alternate
+intent); defer is unfinished work whose **notes are primary**. Always read
+notes before executing or opening follow-ups; never re-ask locks already in
+notes. Follow-up boards only for genuine gaps. One board is enough for
+“react to a suggestion”; domain labels are cosmetic. Adapt
 [`scripts/index.html`](../scripts/index.html) columns/JSON to the campaign —
 keep that action model unless the campaign truly needs other actions. See
 **Nuances** in [`SKILL.md`](../SKILL.md).
@@ -31,14 +34,14 @@ triage-board/
 ## Adapt before you serve
 
 Copy `scripts/` to a working directory, then reshape fields to the data while
-keeping accept / decline / defer (+ editable suggestion, defer notes):
+keeping accept / decline / defer (+ editable suggestion, notes on any action):
 
 | Campaign flavor | Typical tweaks |
 |-----------------|----------------|
 | Renames / labels | Example is already close; “suggested” = proposed name |
 | Keep vs drop vs archive | Suggestion = proposed target; accept applies it |
 | Classify / tag / assign | Suggestion = class/owner; maybe constrain the editor |
-| Approve content changes | Suggestion = proposed text/path; decline = leave as-is |
+| Approve content changes | Suggestion = proposed text/path; decline = reject that proposal (read notes for alternate intent) |
 
 ## Run the example board
 
@@ -55,7 +58,7 @@ Example UI behavior (as shipped):
 - Loads `items.json` (`items` array)
 - Hides rows where `name === suggested` (nothing to decide)
 - Actions: **Accept | Decline | Defer**
-- Editable suggested value + notes (especially for defer)
+- Editable suggested value + notes (on any action; especially useful for defer)
 - `POST /api/submit` writes `decisions.json`
 
 ---
@@ -107,14 +110,19 @@ See [`examples/items.json`](examples/items.json).
 
 | `action` | Meaning |
 |----------|---------|
-| `accept` | Apply `final` (edited suggestion or original suggestion) |
-| `decline` | Keep `current`; ignore suggestion |
-| `defer` | Follow up later; read `notes` (`needs_followup: true`) |
+| `accept` | Apply `final` (edited suggestion or original suggestion); still read `notes` |
+| `decline` | Reject suggested value as written; **read `notes`** for alternate intent — do not treat as “unset” |
+| `defer` | Follow up later; **`notes` are primary** (`needs_followup: true`); do not re-ask what notes already answered |
 
 ```bash
 jq -r '.items[] | select(.accepted) | "\(.current) -> \(.final)"' decisions.json
+jq -r '.items[] | "\(.action)\t\(.current)\t\(.notes)"' decisions.json
 jq -r '.items[] | select(.needs_followup) | "\(.current)\t\(.notes)"' decisions.json
 ```
+
+After submit: execute accepts from `final`; fold decline/defer note intent into
+plan/locks; open a follow-up board only for genuine gaps (unresolved forks /
+user said they don’t understand) — never re-ask settled notes.
 
 ### Optional follow-through (rename-style accept)
 
