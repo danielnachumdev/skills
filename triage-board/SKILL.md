@@ -25,7 +25,8 @@ For **any** topic, the agent proposes a suggestion per row. The user generally:
 
 The UI should make it easy to:
 
-- **Edit the suggested value** before accepting (free-text or a constrained editor)
+- **Edit the suggested value** before accepting (multi-line free-text for long
+  locks / design text; constrained editor only when the value set is small)
 - **Add notes on any row** (accept / decline / defer) — alternate intent, why
   declined, brainstorm seeds, open questions
 
@@ -45,6 +46,16 @@ The UI should make it easy to:
 - **Defer notes are primary.** After submit, summarize **counts**; then use
   defer notes for follow-up. Do not re-prompt topics those notes already
   settled. Submit does **not** mean every row is settled.
+- **Long suggested values need multi-line editors.** Design locks, paragraphs,
+  and other long `suggested` text must use a full-width auto-sizing
+  `<textarea>` (`white-space: pre-wrap`), **never** a single-line
+  `<input type="text">`. Stack the card (id + badges → description → proposed
+  lock → notes → actions) at a readable max-width (~820px). Escape textarea
+  content; autosize on input/render.
+- **Show all items by default.** Do **not** hide rows where
+  `name === suggested` unless the campaign opts into rename-style filtering
+  (short labels with nothing to decide). Design-lock campaigns must show every
+  row.
 - **Follow-up boards = genuine gaps only.** Include rows where the user said
   they don’t understand, or notes leave an unresolved fork. Never re-ask
   locks already present in notes (including decline/defer notes).
@@ -75,8 +86,9 @@ The UI should make it easy to:
    as the default actions unless the campaign truly needs different ones.
 2. **Inventory** the items; probe lightly; assign **suggested** values.
 3. **Adapt the board** — start from [`scripts/`](scripts/) (`serve.py` +
-   `index.html`). Keep editable suggestion + notes on every action; reshape
-   columns and wording to match **this** campaign’s data.
+   `index.html`). Keep multi-line editable suggestion + notes on every action;
+   reshape columns and wording to match **this** campaign’s data. Never demote
+   long locks to a one-liner.
 4. Copy the adapted UI to a working directory; write campaign `items.json`
    next to `serve.py`; start the server; point the user at the board — never
    paste the full table into chat.
@@ -89,7 +101,7 @@ The UI should make it easy to:
 
 ```
 - [ ] Schema matched to the user’s decision type
-- [ ] Board supports accept / decline / defer (+ edit suggestion, notes)
+- [ ] Board supports accept / decline / defer (+ multi-line edit, notes)
 - [ ] Inventory + suggestions loaded
 - [ ] Decision UI live; user submits
 - [ ] Read all notes; execute accepts; lock note intent; board only gaps
@@ -100,13 +112,14 @@ The UI should make it easy to:
 | Path | Role |
 |------|------|
 | [`scripts/serve.py`](scripts/serve.py) | Tiny localhost server (`POST /api/submit` → `decisions.json`) |
-| [`scripts/index.html`](scripts/index.html) | **Example** board (accept / decline / defer + editable suggestion + notes) |
+| [`scripts/index.html`](scripts/index.html) | **Example** board (stacked cards; multi-line proposed lock + notes) |
 | [`references/`](references/) | Worked write-up + fabricated demo `items.json` |
 
-The shipped `index.html` is a **starting template**. Change field labels and
-extra columns for the campaign; keep the accept / decline / defer pattern
-unless the user needs a different action set. Details:
-[`references/reference.md`](references/reference.md).
+The shipped `index.html` is a **starting template**: stacked readable cards,
+full-width auto-sizing textarea for proposed locks, notes textarea, and
+accept / decline / defer. Change field labels and extra columns for the
+campaign; keep that action model unless the user needs a different set.
+Details: [`references/reference.md`](references/reference.md).
 
 **Run (after adapting):**
 
@@ -136,8 +149,11 @@ Do **not** commit live `items.json` or `decisions.json`.
 ## Hard preferences
 
 - Batched approval via **local web UI** — not chat walls of tables
-- Default actions: **accept / decline / defer**; editable suggestion + notes
-  on every action
+- Default actions: **accept / decline / defer**; multi-line editable suggestion
+  + notes on every action
+- Long locks / design text → multi-line editors; never a single-line textbox
+- Show all items by default; optional rename-style `name === suggested` filter
+  only when opted in
 - Execute accepts from **final** values; read notes on all rows; incorporate
   decline/defer notes into plan/locks; follow-up boards only for genuine gaps
 - Adapt columns/wording to the data; do not invent a one-off action model without reason
