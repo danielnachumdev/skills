@@ -13,7 +13,7 @@
       "name": "demo-api",
       "suggested": "demo-api",
       "url": "https://github.com/OWNER/demo-api",
-      "description": "Same name — hidden when current equals suggested.",
+      "description": "Same name as suggested — still shown by default (optional rename filter may hide).",
       "archived": false,
       "fork": false,
       "language": "Python"
@@ -26,6 +26,14 @@
       "archived": false,
       "fork": false,
       "language": "TypeScript"
+    },
+    {
+      "name": "identity-trust-boundary",
+      "suggested": "RBAC checks belong at the service boundary.\nCallers must not pass role claims as trusted input.\nDeny by default when the principal is missing.",
+      "url": "https://example.com/decisions/identity-trust-boundary",
+      "description": "Fabricated multi-line design lock — use the textarea editor, not a one-liner.",
+      "category": "design-lock",
+      "area": "auth"
     }
   ]
 }

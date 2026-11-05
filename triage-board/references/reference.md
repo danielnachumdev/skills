@@ -34,14 +34,35 @@ triage-board/
 ## Adapt before you serve
 
 Copy `scripts/` to a working directory, then reshape fields to the data while
-keeping accept / decline / defer (+ editable suggestion, notes on any action):
+keeping accept / decline / defer (+ multi-line editable suggestion, notes on
+any action):
 
 | Campaign flavor | Typical tweaks |
 |-----------------|----------------|
-| Renames / labels | Example is already close; “suggested” = proposed name |
+| Renames / labels | Short `suggested` names; optional filter hide `name === suggested` |
+| Design locks / long text | Multi-line `suggested`; **must** use textarea — never a one-liner |
 | Keep vs drop vs archive | Suggestion = proposed target; accept applies it |
 | Classify / tag / assign | Suggestion = class/owner; maybe constrain the editor |
 | Approve content changes | Suggestion = proposed text/path; decline = reject that proposal (read notes for alternate intent) |
+
+### Multi-line proposed locks (required for long values)
+
+Long design locks and paragraphs are unreadable in `<input type="text">`. The
+shipped template uses:
+
+- Stacked card: decision id + badges → description → proposed lock → notes → actions
+- Full-width auto-sizing `<textarea>` for proposed lock (`white-space: pre-wrap`)
+- Narrower readable `max-width` (~820px)
+- Proper HTML escaping for textarea content; autosize on input/render
+- Show **all** items by default (design-lock campaigns must not hide
+  `name === suggested`)
+
+Optional rename-style filter (only when the campaign opts in):
+
+```js
+// hide rows with nothing to decide (short-label renames only)
+items = (data.items || []).filter((r) => r.name !== r.suggested)
+```
 
 ## Run the example board
 
@@ -56,14 +77,14 @@ python3 serve.py
 Example UI behavior (as shipped):
 
 - Loads `items.json` (`items` array)
-- Hides rows where `name === suggested` (nothing to decide)
+- Shows **all** rows by default (no `name === suggested` filter)
 - Actions: **Accept | Decline | Defer**
-- Editable suggested value + notes (on any action; especially useful for defer)
+- Multi-line editable proposed lock + notes (on any action)
 - `POST /api/submit` writes `decisions.json`
 
 ---
 
-## Example campaign: suggested renames
+## Example campaign: suggested renames + one design lock
 
 Fabricated rows — only to show the template.
 
@@ -82,6 +103,14 @@ See [`examples/items.json`](examples/items.json).
       "archived": true,
       "fork": false,
       "language": "Python"
+    },
+    {
+      "name": "identity-trust-boundary",
+      "suggested": "RBAC checks belong at the service boundary.\nCallers must not pass role claims as trusted input.\nDeny by default when the principal is missing.",
+      "url": "https://example.com/decisions/identity-trust-boundary",
+      "description": "Fabricated multi-line design lock (not a rename).",
+      "category": "design-lock",
+      "area": "auth"
     }
   ]
 }
