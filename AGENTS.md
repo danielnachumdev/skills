@@ -12,6 +12,7 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 | Skills today | `async/`, `triage-board/`, `writing-python/` — each is `<dir>/SKILL.md` |
 | Toolchain | Validator lives in [`danielnachumdev/actions`](https://github.com/danielnachumdev/actions) (`scripts/validate_skills.*` + `validate-skills.yml`) |
 | CI | Thin `.github/workflows/ci.yml` → actions hygiene + reusable validate-skills |
+| Issue templates | [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) — feature request (Background / Motivation / Requirements / AC); bug report (Description / Steps to reproduce / Expected / Actual / Environment) |
 | Permissions | Thin CI needs `id-token: write` (umbrella nests Terraform; GitHub requires OIDC allow even when that lane is skipped) |
 | Semver / CD | Omitted — no published artifacts |
 | Owners | `.github/CODEOWNERS` → `@danielnachumdev` |
@@ -21,6 +22,7 @@ Maintainer / coding-agent guide for **this** repo. Consumer overview: [`README.m
 ├── .github/
 │   ├── CODEOWNERS
 │   ├── dependabot.yml          # github-actions weekly
+│   ├── ISSUE_TEMPLATE/         # feature_request.md, bug_report.md, config.yml
 │   └── workflows/
 │       └── ci.yml              # thin: CI + Validate skills + Dependabot auto-merge
 ├── async/SKILL.md

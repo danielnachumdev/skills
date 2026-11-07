@@ -25,6 +25,10 @@ ln -sfn /path/to/skills/writing-python ~/.cursor/skills/writing-python
 
 Or copy instead of symlink if you prefer a snapshot. Restart or refresh the agent session if a newly linked skill does not appear.
 
+## Issues
+
+[`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) — feature request (Background / Motivation / Requirements / AC) and industry-standard bug report. Blank issues stay enabled.
+
 ## CI
 
 Thin [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
