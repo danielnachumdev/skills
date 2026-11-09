@@ -23,7 +23,7 @@ or PRs.
 triage-board/
   SKILL.md
   scripts/
-    serve.py       # POST /api/submit → decisions.json
+    serve.py       # POST /api/submit → decisions.json → process exits
     index.html     # example board — customize per campaign
   references/
     reference.md   # this file
@@ -72,6 +72,7 @@ cd /tmp/triage-ui-work
 cp /path/to/triage-board/references/examples/items.json ./items.json
 python3 serve.py
 # → http://127.0.0.1:8765/
+# Successful submit writes decisions.json and stops the server.
 ```
 
 Example UI behavior (as shipped):
@@ -80,7 +81,10 @@ Example UI behavior (as shipped):
 - Shows **all** rows by default (no `name === suggested` filter)
 - Actions: **Accept | Decline | Defer**
 - Multi-line editable proposed lock + notes (on any action)
-- `POST /api/submit` writes `decisions.json`
+- `POST /api/submit` writes `decisions.json`, then **`serve.py` exits**
+- Agents: treat process exit / `decisions.json` as done — no kill needed unless hung
+- If the fetch errors because the server already closed after a successful write,
+  the page downloads a fallback `decisions.json`; check the working directory first
 
 ---
 

@@ -348,6 +348,9 @@
       const status = $("status");
       status.className = "";
       status.textContent = "Submitting…";
+      const deferCount = body.items.filter((r) => r.needs_followup).length;
+      const acceptCount = body.items.filter((r) => r.accepted).length;
+      const tally = `${acceptCount} accept, ${deferCount} defer`;
       try {
         const res = await fetch("/api/submit", {
           method: "POST",
@@ -356,18 +359,21 @@
         });
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
-        const deferCount = body.items.filter((r) => r.needs_followup).length;
-        const acceptCount = body.items.filter((r) => r.accepted).length;
         status.className = "ok";
-        status.textContent = `Saved ${data.path} (${acceptCount} accept, ${deferCount} defer). Tell the agent you're done.`;
+        status.textContent =
+          `Saved ${data.path} (${tally}). Server is shutting down — tell the agent you're done.`;
       } catch (err) {
+        // After a successful write, serve.py shuts down; the connection may
+        // drop before/while the response is read. Download fallback keeps a
+        // copy if the working-directory file is missing.
         const blob = new Blob([JSON.stringify(body, null, 2)], { type: "application/json" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = "decisions.json";
         a.click();
         status.className = "err";
-        status.textContent = `Server save failed (${err.message}). Downloaded decisions.json — place it next to serve.py in the working directory.`;
+        status.textContent =
+          `Save response interrupted (${err.message}). Downloaded decisions.json — if the working directory already has it (${tally}), tell the agent you're done; otherwise place the download next to serve.py.`;
       }
     });
 
