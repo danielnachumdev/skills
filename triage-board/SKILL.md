@@ -92,8 +92,12 @@ The UI should make it easy to:
 4. Copy the adapted UI to a working directory; write campaign `items.json`
    next to `serve.py`; start the server; point the user at the board — never
    paste the full table into chat.
-5. **Parse** submitted `decisions.json` (`jq`). **Read notes on every row.**
-6. **Execute** accepted rows from **final** values. Incorporate decline/defer
+5. **Wait for submit.** After a successful `POST /api/submit`, `serve.py`
+   writes `decisions.json` and **exits on its own** — do not leave an orphan
+   server, and do not kill the process unless it hung without writing the
+   file. Treat process exit (or appearance of `decisions.json`) as completion.
+6. **Parse** submitted `decisions.json` (`jq`). **Read notes on every row.**
+7. **Execute** accepted rows from **final** values. Incorporate decline/defer
    **notes** into the plan/locks. Only board remaining genuine gaps.
    Destructive actions need clear UI intent (and often an explicit extra OK).
 
@@ -104,6 +108,7 @@ The UI should make it easy to:
 - [ ] Board supports accept / decline / defer (+ multi-line edit, notes)
 - [ ] Inventory + suggestions loaded
 - [ ] Decision UI live; user submits
+- [ ] Server exited after submit (or decisions.json present); no orphan serve.py
 - [ ] Read all notes; execute accepts; lock note intent; board only gaps
 ```
 
@@ -111,7 +116,7 @@ The UI should make it easy to:
 
 | Path | Role |
 |------|------|
-| [`scripts/serve.py`](scripts/serve.py) | Tiny localhost server (`POST /api/submit` → `decisions.json`) |
+| [`scripts/serve.py`](scripts/serve.py) | Tiny localhost server (`POST /api/submit` → `decisions.json`, then exit) |
 | [`scripts/index.html`](scripts/index.html) | **Example** board (stacked cards; multi-line proposed lock + notes) |
 | [`references/`](references/) | Worked write-up + fabricated demo `items.json` |
 
@@ -129,7 +134,14 @@ cd /tmp/triage-ui-work
 # write or copy items.json for this campaign (see references/examples/)
 python3 serve.py
 # → http://127.0.0.1:8765/
+# After the user submits, serve.py writes decisions.json and exits.
 ```
+
+**Shutdown:** successful submit → write `decisions.json` → server process exits.
+Agents should watch for that exit (or the file) and then parse; no agent-side
+kill needed in the happy path. The UI still shows success before shutdown; if
+the connection drops as the server stops, the page may download a fallback
+copy of `decisions.json`.
 
 Do **not** commit live `items.json` or `decisions.json`.
 
@@ -158,5 +170,6 @@ Do **not** commit live `items.json` or `decisions.json`.
   decline/defer notes into plan/locks; follow-up boards only for genuine gaps
 - Adapt columns/wording to the data; do not invent a one-off action model without reason
 - Prefer a **single** board unless a second decision type (or true gaps) needs its own
+- After submit, `serve.py` exits once `decisions.json` is written — do not leave orphan servers
 - Do not commit triage JSON or skill changes unless asked
 - Prefer user-driven irreversible ops when they want that control

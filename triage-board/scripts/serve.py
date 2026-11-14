@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -33,13 +34,23 @@ class Handler(SimpleHTTPRequestHandler):
             return
         out = ROOT / "decisions.json"
         out.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        payload = {"ok": True, "path": str(out), "count": len(items)}
+        payload = {
+            "ok": True,
+            "path": str(out),
+            "count": len(items),
+            "shutting_down": True,
+        }
         body = json.dumps(payload).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+        # Shutdown after the response is fully written so the UI can show
+        # success. Call from another thread — shutdown() waits on the
+        # serving thread and would deadlock if invoked here.
+        print(f"[triage] wrote {out}; shutting down")
+        threading.Thread(target=self.server.shutdown, daemon=True).start()
 
     def log_message(self, fmt: str, *args) -> None:
         print(f"[triage] {self.address_string()} {fmt % args}")
@@ -49,7 +60,11 @@ def main() -> None:
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Decision board: http://{HOST}:{PORT}/")
     print(f"Serving {ROOT}")
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+        print("[triage] server stopped")
 
 
 if __name__ == "__main__":
