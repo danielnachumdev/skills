@@ -30,6 +30,7 @@ Run the **current task** in a background subagent. Do not do the work in the par
 - Explicit success criteria (e.g. `npm test` green)
 - “Do not commit unless asked” unless the user requested a commit
 - Any user constraints verbatim
+- **Cleanup before finish**: stop every process, server, watcher, or background job the subagent started for the task. Do not exit while terminal commands are still running. Leave no hanging shells, listeners, or temp services behind.
 
 ## Do not
 
@@ -37,3 +38,4 @@ Run the **current task** in a background subagent. Do not do the work in the par
 - Use `run_in_background: false`
 - Block on `Await` / polling unless the user later asks for status
 - Launch code-mutating work on a contested checkout when a worktree was recommended but not confirmed
+- Treat the goal as done while spawned processes (dev servers, watchers, tunnels, etc.) are still running — clean up first, then finish
